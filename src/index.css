@@ -28,6 +28,14 @@ html,body{
   flex: 0 1 auto;
 }
 
+#num{
+  max-width: 60px;;
+}
+
+#rule{
+  max-width: 100px;;
+}
+
 .info:disabled {
   background-color: white;
   color: black;
@@ -38,6 +46,7 @@ html,body{
   height: 95px;
   flex: 0 1 auto;
   background-color: rgb(31, 34, 39);
+  overflow-y: scroll;
 }
 
 .simulador{

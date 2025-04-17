@@ -324,7 +324,7 @@ function reiniciarSimulador(){
   viewport.drag({
     // keyToPress:["ControlLeft"],
     // ignoreKeyToPressOnTouch:true,
-  }).wheel();
+  }).wheel().pinch();
 
   viewport.on("zoomed-end", () => {
     if(viewport.scale.x < 0.70){
@@ -339,6 +339,14 @@ function reiniciarSimulador(){
   });
 
   viewport.on("drag-end", () => {
+    simulador.eventMode = "static";
+  });
+
+  viewport.on("pinch-start", () => {
+    simulador.eventMode = "none";
+  });
+
+  viewport.on("pinch-end", () => {
     simulador.eventMode = "static";
   });
 
