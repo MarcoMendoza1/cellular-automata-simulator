@@ -5,6 +5,8 @@
 
 const CELL_SIZE = 10;
 
+let app;
+
 let root = document.getElementById("simulador");
 let header = document.getElementById("header");
 let vivas = document.getElementById("liveCells");
@@ -113,6 +115,10 @@ function cambiarColor(color){
   liveCells.forEach( (val,key) => {
     val.tint=color;
   });
+}
+
+function cambiarColorTablero(color){
+  app.renderer.background.color=color;
 }
 
 // Generar siguiente iteracion
@@ -262,7 +268,7 @@ function reiniciarSimulador(){
   reglaS.add(2);
   reglaS.add(3);
 
-  const app = new PIXI.Application();
+  app = new PIXI.Application();
   globalThis.__PIXI_APP__ = app;
 
   await app.init({ resizeTo: root, preference:"webgpu" });
@@ -378,6 +384,14 @@ document.getElementById("colorAlive").addEventListener("change", function() {
 
 });
 
+document.getElementById("colorTablero").addEventListener("change", function() {
+  console.log("Color de tablero cambiado.");
+  let nuevo = parseInt(this.value.substring(1),16);
+
+  cambiarColorTablero(nuevo);
+
+});
+
 // Paso único
 document.getElementById("stepBtn").addEventListener("click", function() {
   console.log("Iteración paso a paso ejecutada.");
@@ -462,6 +476,61 @@ regla.addEventListener("change", function() {
     reglaS.add(parseInt(aux[1][i]));
   }
 
+});
+
+document.getElementById("downloadBtn").addEventListener("click", function () {
+  function obtenerTablero(){
+    let txt = "" + String(tam) + " " + String(tam) + "\n";
+    liveCells.forEach( (val,key) => {
+      let aux = key.split(',');
+      let col = parseInt(aux[0]);
+      let fila = parseInt(aux[1]);
+
+      txt = txt + String(col) + " " + String(fila) + "\n";
+    });
+
+    return txt;
+
+  }
+
+  const text = obtenerTablero();
+
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "archivo.txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("fileInput").addEventListener("input", function () {
+  
+  const file = fileInput.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      //fileContent.textContent = e.target.result;
+      let txt = e.target.result;
+      
+      const numbers = txt.match(/\d+/g); // Matches one or more digits
+      console.log(numbers)
+      if(numbers[0] == numbers[1]){
+        tam = parseInt(numbers[0]);
+      }else return;
+
+      reiniciarSimulador();
+
+      for(let i = 2; i<(numbers.length-1); i=i+2){
+        addCell(String(numbers[i] + "," + numbers[i+1]));
+      }
+
+    };
+    reader.readAsText(file);
+  }
 });
 
 // Cargar archivo
