@@ -14,16 +14,18 @@
             <div class="header-left" style="display: flex; width: 100%; margin-bottom: 10px;">
                 <h1>Simulador Life 2D</h1>
                 <div style="margin-left: auto; display: flex;">
-                  <!-- Reglas -->
+                  <div class="group" style="margin-right: 10px;">
+                    <label for="iteracion">Iteracion:</label>
+                    <input class="info" size="3" type="text" id="iteracion" value="0" disabled>
+                  </div>
+                  
                   <div class="group">
                     <label for="liveCells">Celulas vivas:</label>
                     <input class="info" size="3" type="text" id="liveCells" value="0" disabled>
                   </div>
 
-                  <!-- Reglas -->
                   <div class="group" style="margin-left: 10px;">
-                    <label for="iteracion">Iteracion:</label>
-                    <input class="info" size="3" type="text" id="iteracion" value="0" disabled>
+                    <button id="graph-open">Grafica</button>
                   </div>
                 </div>
             </div>
@@ -88,19 +90,27 @@
         <div id="simulador" class="simulador">
   
         </div>
+
+        <div class="graph-modal" id="graph-modal">
+          <div class="graph-header">
+            
+            <button class="graph-close-btn" id="graph-close-btn">X</button>
+          </div>
+          <div class="graph-container">
+            <canvas id="graph-canva"></canvas>
+          </div>
+        </div>
   
     </div>
-    <script src="src/pixi.js"></script> 
+    
+  <script src="src/pixi.js"></script> 
   <script src="src/pixi_viewport.js"></script>
 
-    <script type="module" src="src/main.js"></script>
-    <script>
-    
-  </script>
+  <script type="" src="src/main.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
 
-  <script>
-    //Generar y descargar archivo en txt
-    
-  </script>
+  <script type="" src="src/grafica.js"></script>
+  
 </body>
 </html>

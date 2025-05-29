@@ -26,11 +26,11 @@ let cv = 0;
 // Iteraciones de la cuadricula, indicador del paso actual
 let ind = 0;
 let liveCells = new Map();
-let arrayCells = [];
 let modo = "nulo";
 
-let reglaB = new Set();
-let reglaS = new Set();
+let reglaB = [false,false,false,false,false,false,false,false,false];
+let reglaS = [false,false,false,false,false,false,false,false,false];
+let newCells = new Set(); //Celulas relevantes
 
 let cellGraph = new PIXI.Graphics()
                   .setFillStyle({ color: 'white',alpha:.4 })
@@ -87,6 +87,7 @@ function onTap(cord){
   }else{
     addCell(cord);
   }
+  updateLastData();
 }
 
 function buildGrid(graphics, cols, rows){
@@ -125,8 +126,6 @@ function cambiarColorTablero(color){
 function siguienteIteracion(){
   ind++;
   iteracion.value = ind;
-
-  let newCells = new Set();
 
   // Función para contar los vecinos vivos de una celda
   function obteneVecinos(cord) {
@@ -197,14 +196,14 @@ function siguienteIteracion(){
   newCells.forEach( (val) => {
     let cont = obteneVecinosVivos(val);
     if(liveCells.has(val)){ //celula viva
-      if(!reglaS.has(cont)){ //muere
+      if(!reglaS[cont]){ //muere
         deadCells.push(val);
       }else{  //vive
         newLiveCells.push(val);
       }
 
     }else{  //muerta
-      if(reglaB.has(cont)){  //vive
+      if(reglaB[cont]){  //vive
         newLiveCells.push(val);
       }
     }
@@ -219,7 +218,8 @@ function siguienteIteracion(){
       addCell(val);
     }
   });
-  
+
+  updateGraphic();
 }
 
 function reiniciarSimulador(){
@@ -254,7 +254,7 @@ function reiniciarSimulador(){
   simulador.hitArea = new PIXI.Rectangle(0, 0, conGrid.width,conGrid.height);
 
   regla.disabled = false;
-
+  resetChart();
 }
 
 
@@ -264,9 +264,9 @@ function reiniciarSimulador(){
 (async () => {
   tam = 100;
 
-  reglaB.add(3);
-  reglaS.add(2);
-  reglaS.add(3);
+  reglaB[3] = true;
+  reglaS[2] = true;
+  reglaS[3] = true;
 
   app = new PIXI.Application();
   globalThis.__PIXI_APP__ = app;
@@ -395,7 +395,7 @@ document.getElementById("colorTablero").addEventListener("change", function() {
 // Paso único
 document.getElementById("stepBtn").addEventListener("click", function() {
   console.log("Iteración paso a paso ejecutada.");
-  siguienteIteracion(history,tam);
+  siguienteIteracion();
   
   //actualizarCelulas();
 
@@ -409,7 +409,7 @@ document.getElementById("playBtn").addEventListener("click", function() {
   regla.disabled = true;
   if (!intervalId) { // Si no se está ejecutando ya
     intervalId = setInterval(() => {
-      siguienteIteracion(history,tam);
+      siguienteIteracion();
     }, 20); // 200 ms por generación
     console.log("Simulación iniciada.");
   }
@@ -465,15 +465,25 @@ regla.addEventListener("change", function() {
 
   console.log(aux);
 
-  reglaB.clear();
-  reglaS.clear();
+  reglaB.fill(false);
+  reglaS.fill(false);
 
   for(let i = 0;i<aux[0].length;i++){
-    reglaB.add(parseInt(aux[0][i]));
+    let x = parseInt(aux[0][i]);
+    if(isNaN(x)){
+      this.value = this.oldValue;
+      return false;
+    }
+    reglaB[x] = true;
   }
 
   for(let i = 0;i<aux[1].length;i++){
-    reglaS.add(parseInt(aux[1][i]));
+    let x = parseInt(aux[1][i]);
+    if(isNaN(x)){
+      this.value = this.oldValue;
+      return false;
+    }
+    reglaS[x] = true;
   }
 
 });
@@ -527,6 +537,8 @@ document.getElementById("fileInput").addEventListener("input", function () {
       for(let i = 2; i<(numbers.length-1); i=i+2){
         addCell(String(numbers[i] + "," + numbers[i+1]));
       }
+
+      updateLastData();
 
     };
     reader.readAsText(file);
