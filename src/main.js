@@ -311,6 +311,17 @@ function cambiarRegla(){
   regla.oldValue = regla.value;
 }
 
+function tableroAleatorio(){
+  reiniciarSimulador();
+  for(let i=0; i<tam; i++){
+    for(let j=0; j<tam; j++){
+      if(Math.random() < 0.5){
+        addCell(String(i) + ',' + String(j));
+      }
+    }
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Inicializacion del simulador
 
@@ -320,16 +331,16 @@ function cambiarRegla(){
   cells = new Array(tam);
   for(let i = 0; i<tam; i++)cells[i] = new Array(tam).fill(false);
 
-  reglaB[3] = true;
+  reglaB[2] = true;
+  reglaS[1] = true;
   reglaS[2] = true;
-  reglaS[3] = true;
   regla.oldValue = reglaStr;
 
   app = new PIXI.Application();
   globalThis.__PIXI_APP__ = app;
 
   await app.init({ resizeTo: root, preference:"webgpu" });
-  app.ticker.maxFPS = 45;
+  app.ticker.maxFPS = 35;
   app.ticker.minFPS = 1;
 
   simulador = new PIXI.Container();
@@ -576,6 +587,8 @@ document.getElementById("fileInput").addEventListener("input", function () {
     reader.readAsText(file);
   }
 });
+
+document.getElementById("aleatorio").addEventListener("click", tableroAleatorio);
 
 // Cargar archivo
 /*document.getElementById("load").addEventListener("change", function(event) {
