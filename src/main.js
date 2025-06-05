@@ -26,10 +26,12 @@ let cv = 0;
 // Iteraciones de la cuadricula, indicador del paso actual
 let ind = 0;
 let liveCells = new Map();
+let cells = [[]];
 let modo = "nulo";
 
 let reglaB = [false,false,false,false,false,false,false,false,false];
 let reglaS = [false,false,false,false,false,false,false,false,false];
+let reglaStr = "b3/s23";
 let newCells = new Set(); //Celulas relevantes
 
 let cellGraph = new PIXI.Graphics()
@@ -54,24 +56,37 @@ function addCell(cord){
   let x = aux[0];
   let y = aux[1];
 
-  let cell = new PIXI.Sprite(baseTexture);
+  let cell;
 
-  cell.x=x * (CELL_SIZE + 1)+1.5;
-  cell.y=y * (CELL_SIZE + 1)+1.5;
+  if(cells[x][y] === false){
 
-  cell.width = 8;
-  cell.height = 8;
-  cell.alpha = .9;
-  cell.tint = (col);
-  cell.visible=true;
+    cell = new PIXI.Sprite(baseTexture);
 
-  conCells.addChild(cell);
+    cell.x=x * (CELL_SIZE + 1)+1.5;
+    cell.y=y * (CELL_SIZE + 1)+1.5;
+
+    cell.width = 8;
+    cell.height = 8;
+    cell.alpha = .9;
+    cell.tint = (col);
+    cell.visible=true;
+
+    cells[x][y] = cell;
+    conCells.addChild(cell);
+  }else{
+    cell = cells[x][y];
+    cell.visible = true;
+  }
+
   liveCells.set(cord,cell);
 }
 
 function removeCell(cord){
-  let cell = liveCells.get(cord);
-  cell.destroy();
+  let aux = cord.split(',');
+  let x = aux[0];
+  let y = aux[1];
+
+  cells[x][y].visible = false;
   liveCells.delete(cord);
 
   cv--;
@@ -126,6 +141,7 @@ function cambiarColorTablero(color){
 function siguienteIteracion(){
   ind++;
   iteracion.value = ind;
+  newCells.clear();
 
   // Función para contar los vecinos vivos de una celda
   function obteneVecinos(cord) {
@@ -148,10 +164,7 @@ function siguienteIteracion(){
         }
 
         const cord = nuevaCol + "," + nuevaFila;
-        
-        if(!newCells.has(cord)){
-          newCells.add(cord);
-        }
+        newCells.add(cord);
       }
     }
   }
@@ -196,14 +209,12 @@ function siguienteIteracion(){
   newCells.forEach( (val) => {
     let cont = obteneVecinosVivos(val);
     if(liveCells.has(val)){ //celula viva
-      if(!reglaS[cont]){ //muere
+      if(!reglaS[cont-1]){ //muere
         deadCells.push(val);
-      }else{  //vive
-        newLiveCells.push(val);
       }
 
     }else{  //muerta
-      if(reglaB[cont]){  //vive
+      if(reglaB[cont-1]){  //vive
         newLiveCells.push(val);
       }
     }
@@ -214,9 +225,7 @@ function siguienteIteracion(){
   });
 
   newLiveCells.forEach( (val) => {
-    if(!liveCells.has(val)){
-      addCell(val);
-    }
+    addCell(val);
   });
 
   updateGraphic();
@@ -238,9 +247,12 @@ function reiniciarSimulador(){
   buildGrid(grid, tam, tam);
 
   liveCells.forEach( (val,key) => {
-    val.destroy();
+    val.visible = false;
   });
   liveCells.clear();
+
+  cells = new Array(tam);
+  for(let i = 0; i<tam; i++)cells[i] = new Array(tam).fill(false);
 
   contorno.clear();  
 
@@ -257,6 +269,47 @@ function reiniciarSimulador(){
   resetChart();
 }
 
+function cambiarRegla(){
+  let aux = regla.value.split('/');
+
+  if(aux.length != 2 || aux[0][0] != 'b' || aux[1][0] != "s" || aux[0].length <= 1 || aux[1].length <= 1) {
+    console.log(regla.oldValue);
+    regla.value = regla.oldValue;
+    return false;
+  }else{
+    console.log(regla.value);
+    regla.oldValue = regla.value;
+  }
+
+  aux[0] = aux[0].substring(1);
+  aux[1] = aux[1].substring(1);
+
+  console.log(aux);
+
+  reglaB.fill(false);
+  reglaS.fill(false);
+
+  for(let i = 0;i<aux[0].length;i++){
+    let x = parseInt(aux[0][i]);
+    if(isNaN(x)){
+      regla.value = regla.oldValue;
+      return false;
+    }
+    reglaB[x-1] = true;
+  }
+
+  for(let i = 0;i<aux[1].length;i++){
+    let x = parseInt(aux[1][i]);
+    if(isNaN(x)){
+      regla.value = regla.oldValue;
+      return false;
+    }
+    reglaS[x-1] = true;
+  }
+
+  reglaStr = regla.value;
+  regla.oldValue = regla.value;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Inicializacion del simulador
@@ -264,9 +317,13 @@ function reiniciarSimulador(){
 (async () => {
   tam = 100;
 
+  cells = new Array(tam);
+  for(let i = 0; i<tam; i++)cells[i] = new Array(tam).fill(false);
+
   reglaB[3] = true;
   reglaS[2] = true;
   reglaS[3] = true;
+  regla.oldValue = reglaStr;
 
   app = new PIXI.Application();
   globalThis.__PIXI_APP__ = app;
@@ -276,7 +333,7 @@ function reiniciarSimulador(){
   app.ticker.minFPS = 1;
 
   simulador = new PIXI.Container();
-  conGrid = new PIXI.Container({isRenderGroup:true});
+  conGrid = new PIXI.Container();
   grid = buildGrid(new PIXI.Graphics(),tam,tam);
   grid.hitArea = new PIXI.Rectangle(0, 0, grid.width,grid.height);
 
@@ -396,6 +453,7 @@ document.getElementById("colorTablero").addEventListener("change", function() {
 document.getElementById("stepBtn").addEventListener("click", function() {
   console.log("Iteración paso a paso ejecutada.");
   siguienteIteracion();
+  app.renderer.render(app.stage);
   
   //actualizarCelulas();
 
@@ -410,6 +468,7 @@ document.getElementById("playBtn").addEventListener("click", function() {
   if (!intervalId) { // Si no se está ejecutando ya
     intervalId = setInterval(() => {
       siguienteIteracion();
+      app.renderer.render(app.stage);
     }, 20); // 200 ms por generación
     console.log("Simulación iniciada.");
   }
@@ -448,49 +507,12 @@ regla.addEventListener("focus", function() {
 });
 
 // Cambiar regla
-regla.addEventListener("change", function() {
-  let aux = this.value.split('/');
+regla.addEventListener("change", cambiarRegla);
 
-  if(aux.length != 2 || aux[0][0] != 'b' || aux[1][0] != "s" || aux[0].length <= 1 || aux[1].length <= 1) {
-    console.log(this.oldValue);
-    this.value = this.oldValue;
-    return false;
-  }else{
-    console.log(this.value);
-    this.oldValue = this.value;
-  }
-
-  aux[0] = aux[0].substring(1);
-  aux[1] = aux[1].substring(1);
-
-  console.log(aux);
-
-  reglaB.fill(false);
-  reglaS.fill(false);
-
-  for(let i = 0;i<aux[0].length;i++){
-    let x = parseInt(aux[0][i]);
-    if(isNaN(x)){
-      this.value = this.oldValue;
-      return false;
-    }
-    reglaB[x] = true;
-  }
-
-  for(let i = 0;i<aux[1].length;i++){
-    let x = parseInt(aux[1][i]);
-    if(isNaN(x)){
-      this.value = this.oldValue;
-      return false;
-    }
-    reglaS[x] = true;
-  }
-
-});
 
 document.getElementById("downloadBtn").addEventListener("click", function () {
   function obtenerTablero(){
-    let txt = "" + String(tam) + " " + String(tam) + "\n";
+    let txt = "" + String(tam) + " " + String(tam) + '\n' + reglaStr + '\n' + modo + "\n";
     liveCells.forEach( (val,key) => {
       let aux = key.split(',');
       let col = parseInt(aux[0]);
@@ -526,15 +548,25 @@ document.getElementById("fileInput").addEventListener("input", function () {
       //fileContent.textContent = e.target.result;
       let txt = e.target.result;
       
-      const numbers = txt.match(/\d+/g); // Matches one or more digits
+      const numbers = txt.match(/[a-zA-Z0-9/]+/g);
+
       console.log(numbers)
       if(numbers[0] == numbers[1]){
         tam = parseInt(numbers[0]);
+        document.getElementById("num").value=tam;
       }else return;
+
+      regla.value = numbers[2];
+      cambiarRegla();
+
+      if(numbers[3] == "nulo" || numbers[3] == "toro"){
+        modo = numbers[3];
+        document.getElementById("frontera").value = numbers[3];
+      }
 
       reiniciarSimulador();
 
-      for(let i = 2; i<(numbers.length-1); i=i+2){
+      for(let i = 4; i<(numbers.length-1); i=i+2){
         addCell(String(numbers[i] + "," + numbers[i+1]));
       }
 
