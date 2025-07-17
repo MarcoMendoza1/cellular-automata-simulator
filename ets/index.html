@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="src/index.css">
+    <title>Hormiga de Langton</title>
+</head>
+
+<body>
+    <div id="root">
+        <header class="header" id="header">
+            <div class="header-left" style="display: flex; width: 100%; margin-bottom: 10px;">
+                <h1>Hormiga de Langton</h1>
+                <div style="margin-left: auto; display: flex;">
+                  <div class="group" style="margin-right: 30px;">
+                    <label for="tipoHormiga">Hormiga:</label>
+                    <select id="tipoHormiga" disabled>
+                      <option value="0">Obrera</option>
+                      <option value="1">Soldado</option>
+                      <option value="2">Reproductora</option>
+                      <option value="3">Reina</option>
+                    </select>
+                  </div>
+                  <div class="group" style="margin-right: 30px;">
+                    <button id="aleatorio">Aleatorio</button>
+                  </div>
+
+                  <div class="group" style="margin-right: 10px;">
+                    <label for="iteracion">Iteracion:</label>
+                    <input class="info" size="3" type="text" id="iteracion" value="0" disabled>
+                  </div>
+                  
+                  <div class="group" style="margin-right: 10px;">
+                    <label for="liveCells">Celulas vivas:</label>
+                    <input class="info" size="3" type="text" id="liveCells" value="0" disabled>
+                  </div>
+
+                  <div class="group">
+                    <label for="liveCells">Hormigas:</label>
+                    <input class="info" size="3" type="text" id="liveAnts" value="0" disabled>
+                  </div>
+
+                  <div class="group" style="margin-left: 10px;">
+                    <button id="graph-open">Grafica</button>
+                  </div>
+
+                  <div class="group" style="margin-left: 10px;">
+                    <button id="config-open">Configuracion</button>
+                  </div>
+                </div>
+            </div>
+            <div class="header-right" style="margin-bottom: 10px;">
+        
+              <!-- Control de archivo -->
+              <div class="group">
+                <label for="num">Tamano:</label>
+                <input type="number" id="num" value="100" size="3">
+              </div>
+        
+              <!-- Zoom -->
+              <!--<div class="group">
+                <label for="zoom">Zoom:</label>
+                <select id="zoom">
+                  <option value="1">1x1 px</option>
+                  <option value="2">2x2 px</option>
+                  <option value="5">5x5 px</option>
+                  <option value="10">10x10 px</option>
+                </select>
+              </div>-->
+        
+              <!-- Colores -->
+              <div class="group">
+                <label for="colorAlive">Celula Viva:</label>
+                <input type="color" id="colorAlive" value="#FFFFFF">
+              </div>
+        
+              <!-- Borde -->
+              <div class="group">
+                <label for="frontera">Borde:</label>
+                <select id="frontera">
+                  <option value="nulo">Nulo</option>
+                  <option value="toro">Toroide</option>
+                </select>
+              </div>
+        
+              <!-- Controles -->
+              <div class="group">
+                <button id="stepBtn">Paso</button>
+                <button id="playBtn">Iniciar</button>
+                <button id="stopBtn">Detener</button>
+                <button id="clearBtn">Reiniciar</button>
+              </div>
+              <div class="group">
+                <input type="file" id="fileInput" accept=".txt" name="file">
+                <pre id="fileContent"></pre>
+                <button id="downloadBtn">Descargar</button>
+              </div>
+        
+            </div>
+        </header>
+        <div id="simulador" class="simulador">
+  
+        </div>
+
+        <!-- Sidebar de Configuración -->
+        <div id="config-sidebar" class="sidebar">
+          <div class="sidebar-header">
+            <h2>Configuración</h2>
+            <button id="close-config" class="close-btn">✕</button>
+          </div>
+          <div class="sidebar-section">
+            <section style="margin-bottom: 24px;">
+              <h3>Modo de Simulación</h3>
+              <small style="display: block; margin-top: 10px; color: #aaa;">
+                Presione la tecla "control" para colocar una hormiga del tipo seleccionado.
+              </small>
+              <label style="display: block; margin-top: 8px;">
+                <input id="modoHormigas0" type="radio" name="modoHormigas" value="0" checked>
+                1 tipo de hormiga
+              </label>
+              <label style="display: block; margin-top: 4px;">
+                <input id="modoHormigas1" type="radio" name="modoHormigas" value="1">
+                4 tipos de hormigas
+              </label>
+            </section>
+          </div>
+          <div class="sidebar-section">
+            <h3>Colores</h3>
+            <div style="padding-left: 10px; display: flex; flex-direction: column;">
+              <div class="config-group">
+                <input type="color" id="colorObrera" value="#FFFF00" hormiga="0">
+                <label for="colorObrera">Obrera</label>
+              </div>
+              <div class="config-group">
+                <input type="color" id="colorSoldado" value="#0000FF" hormiga="1">
+                <label for="colorSoldado">Soldado</label>
+              </div>
+              <div class="config-group">
+                <input type="color" id="colorReproductura" value="#00FF00" hormiga="2">
+                <label for="colorReproductura">Reproductoras</label>
+              </div>
+              <div class="config-group">
+                <input type="color" id="colorReina" value="#FF0000" hormiga="3">
+                <label for="colorReina">Reina</label>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <h3>Densidad para el nacimiento de Hormigas (%)</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-left: 10px;">
+              <label>
+                <input type="number" id="density-ant-0" min="0" max="100" value="33">%
+                Obrera
+              </label>
+              <label>
+                <input type="number" id="density-ant-1" min="0" max="100" value="33">%
+                Soldado
+              </label>
+              <label>
+                <input type="number" id="density-ant-2" min="0" max="100" value="33">%
+                Reproductoras
+              </label>
+              <div style="display: block; margin-top: 0; ;">
+                Entropia de Shannon: <div style="display: inline-block; text-decoration: solid;" id="entropia">1.58</div> .
+              </div>
+            </div>
+            <small style="display: block; margin-top: 10px; color: #aaa;">
+              La suma debería ser ≤ 100%.
+            </small>
+          </div>
+        </div>
+
+
+        <div class="graph-modal" id="graph-modal">
+          <div class="graph-header">
+            
+            <button class="graph-close-btn" id="graph-close-btn">X</button>
+          </div>
+          <div class="graph-container">
+            <canvas id="graph-canva"></canvas>
+          </div>
+        </div>
+  
+    </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const configButton = document.getElementById("config-open");
+      const sidebar = document.getElementById("config-sidebar");
+      const closeBtn = document.getElementById("close-config");
+
+      configButton?.addEventListener("click", () => {
+        sidebar.classList.add("show");
+      });
+
+      closeBtn?.addEventListener("click", () => {
+        sidebar.classList.remove("show");
+      });
+
+      
+    });
+  </script>
+    
+  <script src="src/pixi.js"></script> 
+  <script src="src/pixi_viewport.js"></script>
+
+  <script type="" src="src/main.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+
+  <script type="" src="src/grafica.js"></script>
+  <script type="">
+    
+  </script>
+  
+</body>
+</html>
